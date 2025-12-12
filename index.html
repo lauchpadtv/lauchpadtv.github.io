@@ -11,7 +11,7 @@
         /* --- CSS STYLES --- */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 1200px; /* Increased max width for sidebar */
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
             background-color: #f4f4f9;
@@ -31,10 +31,10 @@
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            align-self: start; /* Sticks the sidebar to the top */
+            align-self: start;
         }
         #sidebar-news h3 {
-            color: #E91E63; /* Accent color for news */
+            color: #E91E63;
             border-bottom: 2px solid #eee;
             padding-bottom: 10px;
             margin-top: 0;
@@ -57,7 +57,7 @@
             margin-top: 5px;
         }
 
-        /* Navigation & Existing Styles (Adjusted for new width) */
+        /* Navigation & Existing Styles */
         nav {
             display: flex;
             justify-content: space-between;
@@ -76,8 +76,6 @@
             font-size: 1.5em; 
             font-weight: bold;
         }
-        #blog-name:hover { background: #e9e9f3; }
-        #blog-name:focus { outline: 2px solid #007BFF; background: white; }
         .btn {
             padding: 10px 20px;
             border: none;
@@ -179,6 +177,9 @@
         </aside>
 
     </div> <script>
+        const API_KEY = "a139ce3350864b92ae986834c93f5119"; // WARNING: This key is exposed in client-side code!
+        const API_ENDPOINT = `https://newsapi.org/v2/top-headlines?country=us&category=technology&apiKey=${API_KEY}`;
+
         const app = {
             state: {
                 posts: [],
@@ -191,40 +192,46 @@
                 app.loadData();
                 app.renderBlogName(); 
                 app.renderList();
-                app.loadNewsSidebar(); // NEW: Load news when app starts
+                app.loadNewsSidebar(); 
             },
             
-            // --- NEW: News Sidebar Function ---
+            // --- News Sidebar Function (Now uses the actual NewsAPI endpoint) ---
             loadNewsSidebar: async () => {
                 const newsContainer = document.getElementById('news-content');
-                newsContainer.innerHTML = '<p>Fetching latest tech news...</p>'; // User-friendly loading state
+                newsContainer.innerHTML = '<p>Fetching latest tech news from NewsAPI...</p>'; 
 
-                // Using the available google search tool to simulate an API call
-                const query = 'Top 5 recent tech headlines';
-                const response = await google.search({ queries: [query] });
-                
                 try {
-                    // Assuming the response is a summary text, we'll try to parse it
-                    // In a real NewsAPI call, you get a clean JSON array.
-                    const newsResult = JSON.parse(response.result).organic_results;
-                    
-                    if (newsResult && newsResult.length > 0) {
-                        newsContainer.innerHTML = newsResult.slice(0, 5).map(item => `
-                            <div class="news-item">
-                                <a href="${item.url}" target="_blank">${item.title}</a>
-                                <p>${item.snippet.length > 100 ? item.snippet.substring(0, 100) + '...' : item.snippet}</p>
-                            </div>
-                        `).join('');
+                    // This call will fail if the browser blocks cross-origin requests 
+                    // (especially if the file is opened locally with file:// protocol).
+                    const response = await fetch(API_ENDPOINT);
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        
+                        if (data.status === 'ok' && data.articles.length > 0) {
+                            // Slice to get the top 5 articles
+                            newsContainer.innerHTML = data.articles.slice(0, 5).map(item => `
+                                <div class="news-item">
+                                    <a href="${item.url}" target="_blank">${item.title}</a>
+                                    <p>${item.description ? item.description.substring(0, 100) + '...' : 'No description available.'}</p>
+                                </div>
+                            `).join('');
+                        } else {
+                             // Fallback for API response error or no articles
+                            newsContainer.innerHTML = `<p style="color:red;">Error: ${data.message || 'No news articles found.'}</p><p>Check if your API key is valid or if your browser is blocking the request (CORS).</p>`;
+                        }
                     } else {
-                        newsContainer.innerHTML = '<p>Could not load news headlines at this time.</p>';
+                        // Fallback for network error
+                        newsContainer.innerHTML = `<p style="color:red;">Failed to fetch news (HTTP Status: ${response.status}).</p><p>You might need to use a proxy server for this to work in a local file.</p>`;
                     }
                 } catch (e) {
-                    newsContainer.innerHTML = `<p>Error parsing news data. Please try again later.</p>`;
+                    // Fallback for general error (e.g., no internet, CORS blocked)
+                    newsContainer.innerHTML = `<p style="color:red;">Could not connect to the news API.</p><p>Error: ${e.message}. For security reasons, browsers often block API calls when you open the file directly from your computer (file://).</p>`;
                     console.error("News Fetch Error:", e);
                 }
             },
             
-            // --- Storage (Local Storage + Cookies) ---
+            // --- Storage (Local Storage + Cookies - Unchanged) ---
             loadData: () => {
                 const local = localStorage.getItem('myBlogAppState');
                 if (local) {
@@ -256,18 +263,16 @@
                 return null;
             },
 
-            // --- Blog Name Functions ---
+            // --- Blog Name Functions (Unchanged) ---
             renderBlogName: () => {
                 const blogNameElement = document.getElementById('blog-name');
                 const pageTitleElement = document.getElementById('page-title');
-                
                 blogNameElement.innerText = app.state.blogName;
                 pageTitleElement.innerText = app.state.blogName + ' | Single File App';
             },
 
             setBlogName: () => {
                 const newName = document.getElementById('blog-name').innerText.trim();
-                
                 if (newName && newName !== app.state.blogName) {
                     app.state.blogName = newName;
                     app.saveData(); 
@@ -334,12 +339,11 @@
                 input.click();
             },
 
-            // --- Navigation ---
+            // --- Navigation, Actions, and Helpers (Unchanged) ---
             navigate: (viewId) => {
                 document.getElementById('home-view').classList.add('hidden');
                 document.getElementById('editor-view').classList.add('hidden');
                 document.getElementById('reader-view').classList.add('hidden');
-                
                 document.getElementById(viewId + '-view').classList.remove('hidden');
 
                 const navBtn = document.getElementById('nav-create-btn');
@@ -347,7 +351,6 @@
                 if(viewId === 'home') app.renderList();
             },
 
-            // --- Actions ---
             savePost: () => {
                 const idInput = document.getElementById('post-id').value;
                 const title = document.getElementById('post-title').value;
@@ -407,7 +410,6 @@
                 app.navigate('reader');
             },
 
-            // --- Helpers ---
             clearEditor: () => {
                 document.getElementById('post-id').value = '';
                 document.getElementById('post-title').value = '';
