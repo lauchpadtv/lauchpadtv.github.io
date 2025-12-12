@@ -492,13 +492,20 @@
             },
 
             viewPost: (id) => {
-                const post = app.state.posts.find(p => p.id === id);
+                // FIX: Look up the post using the passed 'id' parameter, not app.state.activePostId
+                const post = app.state.posts.find(p => p.id === id); 
+                
                 if (!post) return;
+                
+                // Set activePostId AFTER post is found
                 app.state.activePostId = id;
+
+                // Ensure elements exist and set properties
                 document.getElementById('reader-title').innerText = post.title;
-                document.getElementById('reader-date').innerText = post.date;
+                document.getElementById('reader-date').innerText = post.date; // This line was failing
                 const htmlContent = marked.parse(post.content); 
                 document.getElementById('reader-content').innerHTML = htmlContent;
+                
                 app.navigate('reader');
             },
 
