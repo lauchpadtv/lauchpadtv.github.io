@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Vanilla JS Blog</title>
+    <style>
+        /* --- CSS STYLES --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        /* Navigation */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+            margin-bottom: 20px;
+        }
+        nav h1 { margin: 0; color: #444; }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .btn-primary { background: #007BFF; color: white; }
+        .btn-primary:hover { background: #0056b3; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-warning { background: #ffc107; color: black; }
+
+        /* Blog List */
+        .card {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .card:hover { transform: translateY(-2px); }
+        .card h3 {
+            margin-top: 0;
+            color: #007BFF;
+            cursor: pointer;
+        }
+        .card h3:hover { text-decoration: underline; }
+        .date { color: #888; font-size: 0.85em; display: block; margin-bottom: 10px; }
+
+        /* Forms */
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box; /* Ensures padding doesn't break width */
+            font-family: inherit;
+        }
+        textarea { height: 300px; resize: vertical; }
+
+        /* Reader View */
+        #reader-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            line-height: 1.6;
+            margin-top: 20px;
+        }
+
+        /* Utility */
+        .hidden { display: none !important; }
+        .toolbar { margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <h1>✍️ My Blog System</h1>
+        <button id="nav-create-btn" class="btn btn-primary" onclick="app.navigate('editor')">+ New Post</button>
+    </nav>
+
+    <section id="home-view">
+        <div id="blog-list">
+            </div>
+    </section>
+
+    <section id="editor-view" class="hidden">
+        <h2 id="editor-heading">Write New Post</h2>
+        <input type="hidden" id="post-id">
+        <input type="text" id="post-title" placeholder="Enter a catchy title...">
+        <textarea id="post-content" placeholder="Write your story here..."></textarea>
+        
+        <div class="toolbar">
+            <button class="btn btn-primary" onclick="app.savePost()">Save Post</button>
+            <button class="btn btn-secondary" onclick="app.cancelEdit()">Cancel</button>
+        </div>
+    </section>
+
+    <section id="reader-view" class="hidden">
+        <div class="toolbar">
+            <button class="btn btn-secondary" onclick="app.navigate('home')">← Back to Home</button>
+            <div style="float: right;">
+                <button class="btn btn-warning" onclick="app.editCurrentPost()">Edit</button>
+                <button class="btn btn-danger" onclick="app.deleteCurrentPost()">Delete</button>
+            </div>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #ddd;">
+        
+        <h1 id="reader-title" style="font-size: 2.5em; margin-bottom: 5px;"></h1>
+        <small id="reader-date" class="date"></small>
+        <div id="reader-content"></div>
+    </section>
+
+    <script>
+        const app = {
+            // State: Holds data in memory
+            state: {
+                posts: [],
+                activePostId: null
+            },
+
+            // --- Initialization ---
+            init: () => {
+                app.loadData();
+                app.renderList();
+            },
+
+            // --- Storage (Local Storage + Cookies) ---
+            loadData: () => {
+                // 1. Try LocalStorage
+                const local = localStorage.getItem('myBlogData');
+                if (local) {
+                    app.state.posts = JSON.parse(local);
+                    return;
+                }
+                
+                // 2. Fallback to Cookies
+                const cookie = app.getCookie('myBlogData');
+                if (cookie) {
+                    app.state.posts = JSON.parse(cookie);
+                }
+            },
+
+            saveData: () => {
+                const dataStr = JSON.stringify(app.state.posts);
+                
+                // Save to LocalStorage
+                localStorage.setItem('myBlogData', dataStr);
+                
+                // Save to Cookie (Expires in 1 year)
+                // Note: Cookies have a size limit. Large blogs might not fit here.
+                document.cookie = `myBlogData=${dataStr}; path=/; max-age=31536000; SameSite=Lax`;
+            },
+
+            getCookie: (name) => {
+                const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+                if (match) return match[2];
+                return null;
+            },
+
+            // --- Navigation ---
+            navigate: (viewId) => {
+                // Hide all views
+                document.getElementById('home-view').classList.add('hidden');
+                document.getElementById('editor-view').classList.add('hidden');
+                document.getElementById('reader-view').classList.add('hidden');
+                
+                // Show specific view
+                document.getElementById(viewId + '-view').classList.remove('hidden');
+
+                // Toggle "New Post" button visibility
+                const navBtn = document.getElementById('nav-create-btn');
+                if(viewId === 'home') {
+                    app.renderList();
+                    navBtn.style.display = 'block';
+                } else {
+                    navBtn.style.display = 'none';
+                }
+            },
+
+            // --- Actions ---
+            savePost: () => {
+                const idInput = document.getElementById('post-id').value;
+                const title = document.getElementById('post-title').value;
+                const content = document.getElementById('post-content').value;
+
+                if (!title.trim() || !content.trim()) {
+                    alert("Please write both a title and some content!");
+                    return;
+                }
+
+                const timestamp = new Date().toLocaleString();
+
+                if (idInput) {
+                    // Update existing post
+                    const index = app.state.posts.findIndex(p => p.id == idInput);
+                    if (index !== -1) {
+                        app.state.posts[index].title = title;
+                        app.state.posts[index].content = content;
+                        // We keep the original date, or you could update it
+                    }
+                } else {
+                    // Create new post
+                    const newPost = {
+                        id: Date.now(),
+                        title: title,
+                        content: content,
+                        date: timestamp
+                    };
+                    app.state.posts.unshift(newPost); // Add to top of list
+                }
+
+                app.saveData();
+                app.clearEditor();
+                app.navigate('home');
+            },
+
+            cancelEdit: () => {
+                app.clearEditor();
+                app.navigate('home');
+            },
+
+            editCurrentPost: () => {
+                const post = app.state.posts.find(p => p.id === app.state.activePostId);
+                if (!post) return;
+
+                document.getElementById('post-id').value = post.id;
+                document.getElementById('post-title').value = post.title;
+                document.getElementById('post-content').value = post.content;
+                document.getElementById('editor-heading').innerText = "Edit Post";
+                
+                app.navigate('editor');
+            },
+
+            deleteCurrentPost: () => {
+                if (confirm("Are you sure you want to delete this post? This cannot be undone.")) {
+                    app.state.posts = app.state.posts.filter(p => p.id !== app.state.activePostId);
+                    app.saveData();
+                    app.navigate('home');
+                }
+            },
+
+            viewPost: (id) => {
+                const post = app.state.posts.find(p => p.id === id);
+                if (!post) return;
+
+                app.state.activePostId = id;
+                document.getElementById('reader-title').innerText = post.title;
+                document.getElementById('reader-date').innerText = post.date;
+                
+                // Convert newlines to <br> for reading paragraphs
+                // In a real app, you might use a Markdown parser here
+                const formattedContent = post.content.split('\n').map(line => `<p>${line}</p>`).join('');
+                document.getElementById('reader-content').innerHTML = formattedContent;
+
+                app.navigate('reader');
+            },
+
+            // --- Helpers ---
+            clearEditor: () => {
+                document.getElementById('post-id').value = '';
+                document.getElementById('post-title').value = '';
+                document.getElementById('post-content').value = '';
+                document.getElementById('editor-heading').innerText = "Write New Post";
+            },
+
+            renderList: () => {
+                const listContainer = document.getElementById('blog-list');
+                listContainer.innerHTML = '';
+
+                if (app.state.posts.length === 0) {
+                    listContainer.innerHTML = `<div style="text-align:center; color:#777; margin-top:50px;">
+                        <h2>No posts yet 😢</h2>
+                        <p>Click the "+ New Post" button to start writing!</p>
+                    </div>`;
+                    return;
+                }
+
+                app.state.posts.forEach(post => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    // Create a preview snippet (first 100 chars)
+                    const snippet = post.content.length > 100 ? post.content.substring(0, 100) + '...' : post.content;
+                    
+                    card.innerHTML = `
+                        <h3 onclick="app.viewPost(${post.id})">${post.title}</h3>
+                        <span class="date">${post.date}</span>
+                        <p>${snippet}</p>
+                    `;
+                    listContainer.appendChild(card);
+                });
+            }
+        };
+
+        // Start the application
+        app.init();
+    </script>
+</body>
+</html>
