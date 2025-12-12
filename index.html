@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Vanilla JS Blog - Markdown Enabled</title>
+    <title id="page-title">My Vanilla JS Blog - Markdown Enabled</title>
     
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> 
     
@@ -27,7 +27,24 @@
             border-bottom: 2px solid #ddd;
             margin-bottom: 20px;
         }
-        nav h1 { margin: 0; color: #444; }
+        
+        /* New Style for Editable Blog Name */
+        #blog-name { 
+            margin: 0; 
+            color: #444; 
+            cursor: pointer; 
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: background 0.2s;
+            display: inline-block; /* Allows padding and background */
+        }
+        #blog-name:hover {
+            background: #e9e9f3;
+        }
+        #blog-name:focus {
+            outline: 2px solid #007BFF;
+            background: white;
+        }
 
         /* Buttons */
         .btn {
@@ -95,7 +112,7 @@
 <body>
 
     <nav>
-        <h1>✍️ My Blog System</h1>
+        <h1 id="blog-name" contenteditable="true" onblur="app.setBlogName()">✍️ My Blog System</h1>
         <button id="nav-create-btn" class="btn btn-primary" onclick="app.navigate('editor')">+ New Post</button>
     </nav>
 
@@ -134,35 +151,53 @@
 
     <script>
         const app = {
-            // State: Holds data in memory
+            // State: Now includes a field for the blog name
             state: {
                 posts: [],
-                activePostId: null
+                activePostId: null,
+                blogName: 'My Vanilla JS Blog' // Default name
             },
-
+            
             // --- Initialization ---
             init: () => {
                 app.loadData();
+                app.renderBlogName(); // New call to render the stored name
                 app.renderList();
             },
 
             // --- Storage (Local Storage + Cookies) ---
             loadData: () => {
-                const local = localStorage.getItem('myBlogData');
+                // Try to load ALL app data (posts and blogName) from LocalStorage
+                const local = localStorage.getItem('myBlogAppState');
                 if (local) {
-                    app.state.posts = JSON.parse(local);
+                    const savedState = JSON.parse(local);
+                    
+                    // Merge saved state into current state
+                    app.state.posts = savedState.posts || [];
+                    app.state.blogName = savedState.blogName || 'My Vanilla JS Blog';
                     return;
                 }
-                const cookie = app.getCookie('myBlogData');
+                // Fallback (or if it's the first time running)
+                const cookie = app.getCookie('myBlogData'); // Still using old cookie key for backwards compatibility
                 if (cookie) {
                     app.state.posts = JSON.parse(cookie);
                 }
             },
 
+            // Updated save to store the entire state object (posts + blogName)
             saveData: () => {
-                const dataStr = JSON.stringify(app.state.posts);
-                localStorage.setItem('myBlogData', dataStr);
-                document.cookie = `myBlogData=${dataStr}; path=/; max-age=31536000; SameSite=Lax`;
+                // Save the entire state, except temporary fields like activePostId
+                const stateToSave = {
+                    posts: app.state.posts,
+                    blogName: app.state.blogName
+                };
+                
+                const dataStr = JSON.stringify(stateToSave);
+                localStorage.setItem('myBlogAppState', dataStr); // Use a new key for the full state
+
+                // For cookie redundancy, only store posts (due to size limit)
+                const postStr = JSON.stringify(app.state.posts);
+                document.cookie = `myBlogData=${postStr}; path=/; max-age=31536000; SameSite=Lax`;
             },
 
             getCookie: (name) => {
@@ -170,6 +205,29 @@
                 if (match) return match[2];
                 return null;
             },
+
+            // --- New Blog Name Functions ---
+            renderBlogName: () => {
+                const blogNameElement = document.getElementById('blog-name');
+                const pageTitleElement = document.getElementById('page-title');
+                
+                blogNameElement.innerText = app.state.blogName;
+                pageTitleElement.innerText = app.state.blogName + ' | Vanilla JS Blog';
+            },
+
+            setBlogName: () => {
+                const newName = document.getElementById('blog-name').innerText.trim();
+                
+                if (newName && newName !== app.state.blogName) {
+                    app.state.blogName = newName;
+                    app.saveData(); // Save the new name to storage
+                    app.renderBlogName(); // Update the page title
+                } else if (!newName) {
+                    // If the user clears the name, revert to the last valid name
+                    app.renderBlogName(); 
+                }
+            },
+            // --- End New Blog Name Functions ---
 
             // --- Navigation ---
             navigate: (viewId) => {
@@ -188,7 +246,7 @@
                 }
             },
 
-            // --- Actions ---
+            // --- Actions (No changes, but included for completeness) ---
             savePost: () => {
                 const idInput = document.getElementById('post-id').value;
                 const title = document.getElementById('post-title').value;
@@ -255,7 +313,7 @@
                 document.getElementById('reader-title').innerText = post.title;
                 document.getElementById('reader-date').innerText = post.date;
                 
-                // 2. CONVERT MARKDOWN TO HTML
+                // Convert Markdown to HTML
                 const htmlContent = marked.parse(post.content); 
                 
                 document.getElementById('reader-content').innerHTML = htmlContent;
@@ -263,7 +321,7 @@
                 app.navigate('reader');
             },
 
-            // --- Helpers ---
+            // --- Helpers (No changes, but included for completeness) ---
             clearEditor: () => {
                 document.getElementById('post-id').value = '';
                 document.getElementById('post-title').value = '';
@@ -287,7 +345,6 @@
                     const card = document.createElement('div');
                     card.className = 'card';
                     
-                    // Display the content snippet as plain text
                     const snippet = post.content.length > 150 ? post.content.substring(0, 150).replace(/\n/g, ' ') + '...' : post.content.replace(/\n/g, ' ');
                     
                     card.innerHTML = `
