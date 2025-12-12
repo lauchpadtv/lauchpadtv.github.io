@@ -3,174 +3,212 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="page-title">My Single-File Vanilla Blog</title>
+    <title id="page-title">My Bootstrap Vanilla Blog</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> 
     
     <style>
-        /* --- CSS STYLES --- */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 800px; /* Reduced max width for clean, single-column layout */
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f4f4f9;
-            color: #333;
+        /* --- 1. CUSTOM CSS VARIABLES FOR THEME --- */
+        :root {
+            /* Light Theme Defaults */
+            --bg-color: #f8f9fa; /* Bootstrap light gray */
+            --text-color: #212529; /* Bootstrap dark gray */
+            --card-bg: white;
+            --card-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+            --border-color: #dee2e6;
+            --primary-color: #0d6efd; /* Bootstrap primary blue */
         }
 
-        /* Removed .content-wrapper and sidebar styles */
+        /* Dark Theme Overrides */
+        body[data-theme="dark"] {
+            --bg-color: #212529; /* Bootstrap dark background */
+            --text-color: #f8f9fa; /* Bootstrap light text */
+            --card-bg: #343a40; /* Bootstrap darker background */
+            --card-shadow: 0 0.5rem 1rem rgba(0,0,0,0.3);
+            --border-color: #495057;
+            --primary-color: #0dcaf0; /* Bootstrap Cyan/Accent */
+        }
 
-        /* Navigation */
-        nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #ddd;
-            margin-bottom: 20px;
+
+        /* --- 2. BASE STYLES USING VARIABLES & BOOTSTRAP --- */
+        body {
+            /* Apply theme variables */
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
         }
         
-        /* Style for Editable Blog Name */
+        /* Ensure main container is centered and uses fluid layout */
+        .container {
+            max-width: 900px; /* Max width for content */
+        }
+
+        /* Custom Styling for the Blog Title */
         #blog-name { 
-            margin: 0; 
-            color: #444; 
             cursor: pointer; 
-            padding: 5px 10px;
-            border-radius: 5px;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
             transition: background 0.2s;
-            display: inline-block; 
-            font-size: 1.5em; 
-            font-weight: bold;
+            font-size: 1.5rem; 
+            font-weight: 700;
+            color: var(--text-color) !important; /* Ensure it respects dark/light mode */
         }
-        #blog-name:hover { background: #e9e9f3; }
-        #blog-name:focus { outline: 2px solid #007BFF; background: white; }
+        #blog-name:hover { background: var(--border-color); }
+        #blog-name:focus { outline: 2px solid var(--primary-color); background: var(--card-bg); }
 
-        /* Buttons */
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            transition: background 0.3s;
+        /* Custom Styling for Cards (Overriding default Bootstrap card look slightly) */
+        .post-card {
+            background: var(--card-bg);
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s, background-color 0.3s, box-shadow 0.3s;
         }
-        .btn-primary { background: #007BFF; color: white; }
-        .btn-secondary { background: #6c757d; color: white; }
-        .btn-danger { background: #dc3545; color: white; }
-        .btn-success { background: #28a745; color: white; }
-        .btn-warning { background: #ffc107; color: black; }
-
-        /* Blog List */
-        .card {
-            background: white;
-            padding: 20px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
-        }
-        .card:hover { transform: translateY(-2px); }
-        .card h3 {
-            margin-top: 0;
-            color: #007BFF;
+        .post-card:hover { transform: translateY(-2px); }
+        
+        .post-card h3 {
+            color: var(--primary-color);
             cursor: pointer;
         }
-        .date { color: #888; font-size: 0.85em; display: block; margin-bottom: 10px; }
-
-        /* Forms */
-        input[type="text"], textarea {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box; 
-            font-family: inherit;
+        .date { 
+            color: #888; 
+            font-size: 0.85em; 
+            display: block; 
+            margin-bottom: 10px; 
         }
-        textarea { height: 300px; resize: vertical; }
 
-        /* Reader View - Markdown Styling */
+        /* Form/Text Area Colors */
+        .form-control {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+        /* Make sure input placeholder text is visible in dark mode */
+        body[data-theme="dark"] ::placeholder {
+            color: #adb5bd; /* Lighter placeholder text */
+            opacity: 1; 
+        }
+
+        /* Reader View Content Area */
         #reader-content {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            line-height: 1.6;
-            margin-top: 20px;
+            background: var(--card-bg);
+            color: var(--text-color);
+            box-shadow: var(--card-shadow);
         }
-
+        
         /* Utility */
         .hidden { display: none !important; }
-        .toolbar { margin-bottom: 15px; }
+
     </style>
 </head>
-<body>
+<body data-theme="light">
 
-    <nav>
-        <h1 id="blog-name" contenteditable="true" onblur="app.setBlogName()">✍️ My Single-File Blog</h1>
-        <button id="nav-create-btn" class="btn btn-primary" onclick="app.navigate('editor')">+ New Post</button>
-    </nav>
+    <div class="container my-4">
 
-    <main>
-        <section id="home-view">
-            <div style="margin-bottom: 20px;">
-                <p style="color: #6c757d; font-weight: bold; font-size: 0.9em;">⚠️ Data stored in this browser (Local Storage).</p>
-                <button class="btn btn-success" onclick="app.importData()">📥 Import From File</button>
-                <button class="btn btn-secondary" onclick="app.exportData()">📤 Export To File</button>
-            </div>
-            <div id="blog-list">
-                </div>
-        </section>
-
-        <section id="editor-view" class="hidden">
-            <h2 id="editor-heading">Write New Post</h2>
-            <p style="color: #6c757d; font-size: 0.9em;">**Markdown formatting is enabled.**</p>
-            <input type="hidden" id="post-id">
-            <input type="text" id="post-title" placeholder="Enter a catchy title...">
-            <textarea id="post-content" placeholder="Write your story here..."></textarea>
-            
-            <div class="toolbar">
-                <button class="btn btn-primary" onclick="app.savePost()">Save Post</button>
-                <button class="btn btn-secondary" onclick="app.cancelEdit()">Cancel</button>
-            </div>
-        </section>
-
-        <section id="reader-view" class="hidden">
-            <div class="toolbar">
-                <button class="btn btn-secondary" onclick="app.navigate('home')">← Back to Home</button>
-                <div style="float: right;">
-                    <button class="btn btn-warning" onclick="app.editCurrentPost()">Edit</button>
-                    <button class="btn btn-danger" onclick="app.deleteCurrentPost()">Delete</button>
+        <nav class="navbar navbar-expand-lg border-bottom pb-3 mb-4">
+            <div class="container-fluid p-0">
+                <h1 id="blog-name" contenteditable="true" onblur="app.setBlogName()">✍️ My Single-File Blog</h1>
+                
+                <div class="d-flex align-items-center">
+                    <button id="theme-toggle" class="btn btn-outline-secondary me-2" onclick="app.toggleTheme()" title="Toggle Light/Dark Mode">🌓</button>
+                    <button id="nav-create-btn" class="btn btn-primary" onclick="app.navigate('editor')">
+                        <i class="bi bi-plus-lg"></i> + New Post
+                    </button>
                 </div>
             </div>
-            <hr style="border: 0; border-top: 1px solid #ddd;">
-            
-            <h1 id="reader-title" style="font-size: 2.5em; margin-bottom: 5px;"></h1>
-            <small id="reader-date" class="date"></small>
-            <div id="reader-content"></div>
-        </section>
-    </main>
+        </nav>
 
-    <script>
+        <main>
+            <section id="home-view">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <p class="text-muted mb-0 me-3">⚠️ Data stored in this browser (Local Storage).</p>
+                    <div>
+                        <button class="btn btn-success me-2" onclick="app.importData()">
+                            <i class="bi bi-box-arrow-in-down"></i> 📥 Import
+                        </button>
+                        <button class="btn btn-secondary" onclick="app.exportData()">
+                            <i class="bi bi-box-arrow-up"></i> 📤 Export
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="blog-list">
+                    </div>
+            </section>
+
+            <section id="editor-view" class="hidden">
+                <h2 id="editor-heading" class="mb-3">Write New Post</h2>
+                <p class="text-muted mb-3">**Markdown formatting is enabled.**</p>
+                
+                <input type="hidden" id="post-id">
+                <input type="text" id="post-title" class="form-control form-control-lg mb-3" placeholder="Enter a catchy title...">
+                <textarea id="post-content" class="form-control mb-3" rows="15" placeholder="Write your story here..."></textarea>
+                
+                <div class="toolbar d-flex justify-content-start">
+                    <button class="btn btn-primary me-2" onclick="app.savePost()">Save Post</button>
+                    <button class="btn btn-secondary" onclick="app.cancelEdit()">Cancel</button>
+                </div>
+            </section>
+
+            <section id="reader-view" class="hidden">
+                <div class="toolbar d-flex justify-content-between mb-4">
+                    <button class="btn btn-secondary" onclick="app.navigate('home')">
+                        <i class="bi bi-arrow-left"></i> ← Back to Home
+                    </button>
+                    <div>
+                        <button class="btn btn-warning me-2" onclick="app.editCurrentPost()">Edit</button>
+                        <button class="btn btn-danger" onclick="app.deleteCurrentPost()">Delete</button>
+                    </div>
+                </div>
+                
+                <div id="reader-content" class="p-4 rounded">
+                    <h1 id="reader-title" class="mb-1" style="font-size: 2.2rem;"></h1>
+                    <small id="reader-date" class="date text-muted d-block mb-3"></small>
+                    </div>
+            </section>
+        </main>
+
+    </div> <script>
         const app = {
             // State: Holds data in memory
             state: {
                 posts: [],
                 activePostId: null,
-                blogName: 'My Single-File Vanilla Blog'
+                blogName: 'My Bootstrap Vanilla Blog',
+                currentTheme: 'light' // Default theme
             },
             
             // --- Initialization ---
             init: () => {
-                app.loadData(); // Calls Local Storage
+                app.loadData();
+                app.loadTheme(); // Load user's saved theme preference
                 app.renderBlogName(); 
                 app.renderList();
-                // Removed the app.loadQuoteSidebar() call
+            },
+
+            // --- Theme Functions ---
+            loadTheme: () => {
+                const savedTheme = localStorage.getItem('themePreference') || 
+                                    (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                app.setTheme(savedTheme);
+            },
+            
+            toggleTheme: () => {
+                const newTheme = app.state.currentTheme === 'light' ? 'dark' : 'light';
+                app.setTheme(newTheme);
+                localStorage.setItem('themePreference', newTheme);
+            },
+
+            setTheme: (theme) => {
+                document.body.setAttribute('data-theme', theme);
+                app.state.currentTheme = theme;
+                const toggleBtn = document.getElementById('theme-toggle');
+                toggleBtn.innerText = theme === 'light' ? '🌙' : '☀️';
+                toggleBtn.title = theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode';
             },
 
             // --- Storage (Local Storage + Cookies - Unchanged) ---
             loadData: () => {
-                // 1. Try to load ALL app state from LocalStorage
                 const local = localStorage.getItem('myBlogAppState');
                 if (local) {
                     const savedState = JSON.parse(local);
@@ -179,7 +217,6 @@
                     return;
                 }
                 
-                // 2. Fallback to Cookies (for redundancy)
                 const cookie = app.getCookie('myBlogData');
                 if (cookie) {
                     app.state.posts = JSON.parse(cookie);
@@ -193,9 +230,8 @@
                 };
                 
                 const dataStr = JSON.stringify(stateToSave);
-                localStorage.setItem('myBlogAppState', dataStr); // Primary persistence
+                localStorage.setItem('myBlogAppState', dataStr); 
 
-                // Save to Cookie (Secondary persistence, size limited)
                 const postStr = JSON.stringify(app.state.posts);
                 document.cookie = `myBlogData=${postStr}; path=/; max-age=31536000; SameSite=Lax`;
             },
@@ -267,11 +303,10 @@
                                 throw new Error('Invalid file structure. Missing "posts" array.');
                             }
 
-                            // Update state and save
                             app.state.posts = importedState.posts;
                             app.state.blogName = importedState.blogName || 'Imported Single File Blog';
                             
-                            app.saveData(); // Save to LocalStorage/Cookie
+                            app.saveData(); 
                             app.renderBlogName(); 
                             app.navigate('home'); 
                             alert(`Blog data imported successfully! ${app.state.posts.length} posts loaded.`);
@@ -286,7 +321,7 @@
                 input.click();
             },
 
-            // --- Navigation, Actions, and Helpers (Unchanged) ---
+            // --- Navigation, Actions, and Helpers ---
             navigate: (viewId) => {
                 document.getElementById('home-view').classList.add('hidden');
                 document.getElementById('editor-view').classList.add('hidden');
@@ -370,23 +405,26 @@
                 listContainer.innerHTML = '';
 
                 if (app.state.posts.length === 0) {
-                    listContainer.innerHTML = `<div style="text-align:center; color:#777; margin-top:50px;">
+                    listContainer.innerHTML = `<div class="text-center py-5 text-muted">
                         <h2>No posts yet 😢</h2>
-                        <p>Write one or Import Data.</p>
+                        <p>Click '+ New Post' to start writing.</p>
                     </div>`;
                     return;
                 }
 
                 app.state.posts.forEach(post => {
                     const card = document.createElement('div');
-                    card.className = 'card';
+                    card.className = 'card post-card mb-3';
                     
                     const snippet = post.content.length > 150 ? post.content.substring(0, 150).replace(/\n/g, ' ') + '...' : post.content.replace(/\n/g, ' ');
                     
                     card.innerHTML = `
-                        <h3 onclick="app.viewPost(${post.id})">${post.title}</h3>
-                        <span class="date">${post.date}</span>
-                        <p>${snippet}</p>
+                        <div class="card-body">
+                            <h3 class="card-title" onclick="app.viewPost(${post.id})">${post.title}</h3>
+                            <span class="date">${post.date}</span>
+                            <p class="card-text">${snippet}</p>
+                            <a href="#" onclick="app.viewPost(${post.id}); return false;" class="btn btn-sm btn-outline-primary">Read More</a>
+                        </div>
                     `;
                     listContainer.appendChild(card);
                 });
@@ -396,5 +434,6 @@
         // Start the application
         app.init();
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
