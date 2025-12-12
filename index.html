@@ -131,11 +131,11 @@
             box-shadow: var(--card-shadow);
         }
 
-        /* NEW: Toolbar Styling */
+        /* Toolbar Styling */
         #markdown-toolbar {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-bottom: none; /* Merges nicely with the textarea border */
+            border-bottom: none; 
             border-top-left-radius: 0.3rem;
             border-top-right-radius: 0.3rem;
             padding: 0.5rem;
@@ -156,6 +156,22 @@
         
         /* Utility */
         .hidden { display: none !important; }
+
+        /* Mobile specific adjustments */
+        @media (max-width: 576px) {
+            /* Fix button stack on small screens for export/import */
+            #home-view .d-flex {
+                flex-direction: column;
+                align-items: stretch !important;
+            }
+            #home-view .d-flex > * {
+                margin-bottom: 0.5rem;
+            }
+            /* Remove margins on export/import buttons when stacked */
+            #home-view .me-2 { 
+                margin-right: 0 !important;
+            }
+        }
     </style>
 </head>
 <body data-theme="light">
@@ -177,9 +193,9 @@
 
         <main>
             <section id="home-view">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <p class="text-muted mb-0 me-3">⚠️ Data stored in this browser (Local Storage).</p>
-                    <div>
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+                    <p class="text-muted mb-2 mb-md-0 me-md-3">⚠️ Data stored in this browser (Local Storage).</p>
+                    <div class="d-flex">
                         <button class="btn btn-success me-2" onclick="app.importData()">
                             <i class="bi bi-box-arrow-in-down"></i> 📥 Import
                         </button>
@@ -251,7 +267,7 @@
             // --- Initialization ---
             init: () => {
                 app.loadData();
-                app.loadTheme(); // Load user's saved theme preference
+                app.loadTheme(); 
                 app.renderBlogName(); 
                 app.renderList();
             },
@@ -277,7 +293,7 @@
                 toggleBtn.title = theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode';
             },
 
-            // --- NEW: Text Formatting Function ---
+            // --- Text Formatting Function ---
             formatText: (prefix, suffix) => {
                 const textarea = document.getElementById('post-content');
                 const start = textarea.selectionStart;
@@ -287,17 +303,13 @@
                 let newText;
 
                 if (start !== end) {
-                    // If text is selected, wrap it
                     newText = prefix + selectedText + suffix;
                 } else {
-                    // If no text is selected, just insert the format syntax
                     newText = prefix + suffix;
                 }
 
-                // Update the textarea value
                 textarea.value = textarea.value.substring(0, start) + newText + textarea.value.substring(end);
                 
-                // Restore focus and put cursor inside the inserted syntax
                 if (start === end) {
                     textarea.focus();
                     textarea.selectionEnd = start + prefix.length;
@@ -480,7 +492,7 @@
             },
 
             viewPost: (id) => {
-                const post = app.state.posts.find(p => p.id === app.state.activePostId);
+                const post = app.state.posts.find(p => p.id === id);
                 if (!post) return;
                 app.state.activePostId = id;
                 document.getElementById('reader-title').innerText = post.title;
