@@ -13,12 +13,12 @@
         /* --- 1. CUSTOM CSS VARIABLES FOR THEME --- */
         :root {
             /* Light Theme Defaults */
-            --bg-color: #f8f9fa; /* Bootstrap light gray */
-            --text-color: #212529; /* Bootstrap dark gray */
+            --bg-color: #f8f9fa; 
+            --text-color: #212529; 
             --card-bg: white;
             --card-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
             --border-color: #dee2e6;
-            --primary-color: #0d6efd; /* Bootstrap primary blue */
+            --primary-color: #0d6efd; 
             --success-color: #198754;
             --secondary-color: #6c757d;
             --danger-color: #dc3545;
@@ -32,9 +32,9 @@
             --card-bg: #343a40; 
             --card-shadow: 0 0.5rem 1rem rgba(0,0,0,0.3);
             --border-color: #495057;
-            --primary-color: #0dcaf0; /* Cyan Accent */
+            --primary-color: #0dcaf0; 
             --success-color: #198754;
-            --secondary-color: #495057; /* Darker secondary */
+            --secondary-color: #495057; 
             --danger-color: #dc3545;
             --warning-color: #ffc107;
         }
@@ -42,7 +42,6 @@
 
         /* --- 2. BASE STYLES & FIXES USING VARIABLES --- */
         body {
-            /* Apply theme variables */
             background-color: var(--bg-color);
             color: var(--text-color);
             transition: background-color 0.3s, color 0.3s;
@@ -69,10 +68,10 @@
         .btn-primary { 
             background-color: var(--primary-color) !important; 
             border-color: var(--primary-color) !important;
-            color: var(--bg-color) !important; /* Text color contrasts with background */
+            color: var(--bg-color) !important; 
         }
         body[data-theme="dark"] .btn-primary { 
-            color: var(--text-color) !important; /* Use light text on dark primary */
+            color: var(--text-color) !important; 
         }
 
         .btn-secondary { 
@@ -114,7 +113,7 @@
             cursor: pointer;
         }
         .date { 
-            color: #888 !important; /* Keep date text slightly muted */
+            color: #888 !important; 
             font-size: 0.85em; 
             display: block; 
             margin-bottom: 10px; 
@@ -130,6 +129,29 @@
         #reader-content {
             background: var(--card-bg);
             box-shadow: var(--card-shadow);
+        }
+
+        /* NEW: Toolbar Styling */
+        #markdown-toolbar {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-bottom: none; /* Merges nicely with the textarea border */
+            border-top-left-radius: 0.3rem;
+            border-top-right-radius: 0.3rem;
+            padding: 0.5rem;
+            display: flex;
+            gap: 0.25rem;
+            flex-wrap: wrap;
+        }
+        #markdown-toolbar .btn {
+            font-size: 0.9rem;
+            padding: 0.3rem 0.5rem;
+            color: var(--text-color) !important;
+            background-color: var(--bg-color) !important;
+            border-color: var(--border-color) !important;
+        }
+        #markdown-toolbar .btn:hover {
+            background-color: var(--border-color) !important;
         }
         
         /* Utility */
@@ -177,7 +199,20 @@
                 
                 <input type="hidden" id="post-id">
                 <input type="text" id="post-title" class="form-control form-control-lg mb-3" placeholder="Enter a catchy title...">
-                <textarea id="post-content" class="form-control mb-3" rows="15" placeholder="Write your story here..."></textarea>
+                
+                <div id="markdown-toolbar">
+                    <button class="btn" onclick="app.formatText('**','**')" title="Bold (Ctrl+B)">**B**</button>
+                    <button class="btn" onclick="app.formatText('*','*')" title="Italic (Ctrl+I)">*I*</button>
+                    <button class="btn" onclick="app.formatText('# ','')" title="Heading 1">H1</button>
+                    <button class="btn" onclick="app.formatText('## ','')" title="Heading 2">H2</button>
+                    <button class="btn" onclick="app.formatText('- ','\n')" title="Bullet List">• List</button>
+                    <button class="btn" onclick="app.formatText('1. ','\n')" title="Numbered List">1. List</button>
+                    <button class="btn" onclick="app.formatText('[Link Text](','http://example.com)')" title="Link">🔗 Link</button>
+                    <button class="btn" onclick="app.formatText('`','`')" title="Inline Code">`< >`</button>
+                    <button class="btn" onclick="app.formatText('```javascript\n','\n```')" title="Code Block">{' '}</button>
+                </div>
+
+                <textarea id="post-content" class="form-control mb-3" rows="15" placeholder="Write your story here..." style="border-top-left-radius: 0; border-top-right-radius: 0; margin-top: 0;"></textarea>
                 
                 <div class="toolbar d-flex justify-content-start">
                     <button class="btn btn-primary me-2" onclick="app.savePost()">Save Post</button>
@@ -242,9 +277,35 @@
                 toggleBtn.title = theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode';
             },
 
+            // --- NEW: Text Formatting Function ---
+            formatText: (prefix, suffix) => {
+                const textarea = document.getElementById('post-content');
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const selectedText = textarea.value.substring(start, end);
+                
+                let newText;
+
+                if (start !== end) {
+                    // If text is selected, wrap it
+                    newText = prefix + selectedText + suffix;
+                } else {
+                    // If no text is selected, just insert the format syntax
+                    newText = prefix + suffix;
+                }
+
+                // Update the textarea value
+                textarea.value = textarea.value.substring(0, start) + newText + textarea.value.substring(end);
+                
+                // Restore focus and put cursor inside the inserted syntax
+                if (start === end) {
+                    textarea.focus();
+                    textarea.selectionEnd = start + prefix.length;
+                }
+            },
+
             // --- Storage (Local Storage + Cookies - Unchanged) ---
             loadData: () => {
-                // 1. Try to load ALL app state from LocalStorage
                 const local = localStorage.getItem('myBlogAppState');
                 if (local) {
                     const savedState = JSON.parse(local);
@@ -253,7 +314,6 @@
                     return;
                 }
                 
-                // 2. Fallback to Cookies (for redundancy)
                 const cookie = app.getCookie('myBlogData');
                 if (cookie) {
                     app.state.posts = JSON.parse(cookie);
@@ -420,7 +480,7 @@
             },
 
             viewPost: (id) => {
-                const post = app.state.posts.find(p => p.id === id);
+                const post = app.state.posts.find(p => p.id === app.state.activePostId);
                 if (!post) return;
                 app.state.activePostId = id;
                 document.getElementById('reader-title').innerText = post.title;
