@@ -28,7 +28,7 @@
             margin-bottom: 20px;
         }
         
-        /* New Style for Editable Blog Name */
+        /* Style for Editable Blog Name */
         #blog-name { 
             margin: 0; 
             color: #444; 
@@ -36,7 +36,9 @@
             padding: 5px 10px;
             border-radius: 5px;
             transition: background 0.2s;
-            display: inline-block; /* Allows padding and background */
+            display: inline-block; 
+            font-size: 1.5em; /* Match h1 size */
+            font-weight: bold;
         }
         #blog-name:hover {
             background: #e9e9f3;
@@ -59,8 +61,14 @@
         .btn-primary { background: #007BFF; color: white; }
         .btn-primary:hover { background: #0056b3; }
         .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary:hover { background: #5a6268; }
         .btn-danger { background: #dc3545; color: white; }
+        .btn-danger:hover { background: #c82333; }
         .btn-warning { background: #ffc107; color: black; }
+        .btn-warning:hover { background: #e0a800; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-success:hover { background: #1e7e34; }
+
 
         /* Blog List */
         .card {
@@ -117,6 +125,10 @@
     </nav>
 
     <section id="home-view">
+        <div style="margin-bottom: 20px;">
+            <button class="btn btn-success" onclick="app.importData()">📥 Import Data</button>
+            <button class="btn btn-secondary" onclick="app.exportData()">📤 Export Data</button>
+        </div>
         <div id="blog-list">
             </div>
     </section>
@@ -161,7 +173,7 @@
             // --- Initialization ---
             init: () => {
                 app.loadData();
-                app.renderBlogName(); // New call to render the stored name
+                app.renderBlogName(); 
                 app.renderList();
             },
 
@@ -172,13 +184,13 @@
                 if (local) {
                     const savedState = JSON.parse(local);
                     
-                    // Merge saved state into current state
                     app.state.posts = savedState.posts || [];
                     app.state.blogName = savedState.blogName || 'My Vanilla JS Blog';
                     return;
                 }
-                // Fallback (or if it's the first time running)
-                const cookie = app.getCookie('myBlogData'); // Still using old cookie key for backwards compatibility
+                
+                // Fallback (for old structure or first time)
+                const cookie = app.getCookie('myBlogData');
                 if (cookie) {
                     app.state.posts = JSON.parse(cookie);
                 }
@@ -186,14 +198,13 @@
 
             // Updated save to store the entire state object (posts + blogName)
             saveData: () => {
-                // Save the entire state, except temporary fields like activePostId
                 const stateToSave = {
                     posts: app.state.posts,
                     blogName: app.state.blogName
                 };
                 
                 const dataStr = JSON.stringify(stateToSave);
-                localStorage.setItem('myBlogAppState', dataStr); // Use a new key for the full state
+                localStorage.setItem('myBlogAppState', dataStr); 
 
                 // For cookie redundancy, only store posts (due to size limit)
                 const postStr = JSON.stringify(app.state.posts);
@@ -206,7 +217,75 @@
                 return null;
             },
 
-            // --- New Blog Name Functions ---
+            // --- NEW: Export/Import Functionality ---
+
+            exportData: () => {
+                // Prepare data (posts and blog name)
+                const stateToSave = {
+                    posts: app.state.posts,
+                    blogName: app.state.blogName,
+                    exportTime: new Date().toISOString()
+                };
+                const dataStr = JSON.stringify(stateToSave, null, 2); 
+
+                // Create a temporary download link
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+
+                // Trigger the download
+                link.href = url;
+                link.download = `blog_backup_${new Date().toISOString().slice(0, 10)}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+
+                alert("Blog data exported successfully! Check your downloads folder.");
+            },
+
+            importData: () => {
+                // Create a hidden file input element
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'application/json';
+
+                // Define what happens when a file is selected
+                input.onchange = (event) => {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const importedState = JSON.parse(e.target.result);
+                            
+                            if (!importedState.posts || !Array.isArray(importedState.posts)) {
+                                throw new Error('Invalid file structure. Missing "posts" array.');
+                            }
+
+                            // If imported successfully, update state and save
+                            app.state.posts = importedState.posts;
+                            app.state.blogName = importedState.blogName || 'Imported Blog';
+                            
+                            app.saveData(); // Save to LocalStorage/Cookie
+                            app.renderBlogName(); // Update UI
+                            app.navigate('home'); // Show home view with new data
+                            alert(`Blog data imported successfully! ${app.state.posts.length} posts loaded.`);
+                            
+                        } catch (error) {
+                            alert(`Error importing file: ${error.message}. Make sure the file is a valid blog JSON export.`);
+                            console.error('Import Error:', error);
+                        }
+                    };
+                    reader.readAsText(file);
+                };
+
+                // Open the file selection dialog
+                input.click();
+            },
+
+            // --- Blog Name Functions ---
             renderBlogName: () => {
                 const blogNameElement = document.getElementById('blog-name');
                 const pageTitleElement = document.getElementById('page-title');
@@ -220,14 +299,13 @@
                 
                 if (newName && newName !== app.state.blogName) {
                     app.state.blogName = newName;
-                    app.saveData(); // Save the new name to storage
-                    app.renderBlogName(); // Update the page title
+                    app.saveData(); 
+                    app.renderBlogName(); 
                 } else if (!newName) {
-                    // If the user clears the name, revert to the last valid name
                     app.renderBlogName(); 
                 }
             },
-            // --- End New Blog Name Functions ---
+            // --- End Blog Name Functions ---
 
             // --- Navigation ---
             navigate: (viewId) => {
@@ -246,7 +324,7 @@
                 }
             },
 
-            // --- Actions (No changes, but included for completeness) ---
+            // --- Actions ---
             savePost: () => {
                 const idInput = document.getElementById('post-id').value;
                 const title = document.getElementById('post-title').value;
@@ -321,7 +399,7 @@
                 app.navigate('reader');
             },
 
-            // --- Helpers (No changes, but included for completeness) ---
+            // --- Helpers ---
             clearEditor: () => {
                 document.getElementById('post-id').value = '';
                 document.getElementById('post-title').value = '';
@@ -336,7 +414,7 @@
                 if (app.state.posts.length === 0) {
                     listContainer.innerHTML = `<div style="text-align:center; color:#777; margin-top:50px;">
                         <h2>No posts yet 😢</h2>
-                        <p>Click the "+ New Post" button to start writing!</p>
+                        <p>Click the "+ New Post" button to start writing, or **Import Data** if you have a backup file.</p>
                     </div>`;
                     return;
                 }
