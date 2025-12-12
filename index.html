@@ -19,30 +19,38 @@
             --card-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
             --border-color: #dee2e6;
             --primary-color: #0d6efd; /* Bootstrap primary blue */
+            --success-color: #198754;
+            --secondary-color: #6c757d;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
         }
 
         /* Dark Theme Overrides */
         body[data-theme="dark"] {
-            --bg-color: #212529; /* Bootstrap dark background */
-            --text-color: #f8f9fa; /* Bootstrap light text */
-            --card-bg: #343a40; /* Bootstrap darker background */
+            --bg-color: #212529; 
+            --text-color: #f8f9fa; 
+            --card-bg: #343a40; 
             --card-shadow: 0 0.5rem 1rem rgba(0,0,0,0.3);
             --border-color: #495057;
-            --primary-color: #0dcaf0; /* Bootstrap Cyan/Accent */
+            --primary-color: #0dcaf0; /* Cyan Accent */
+            --success-color: #198754;
+            --secondary-color: #495057; /* Darker secondary */
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
         }
 
 
-        /* --- 2. BASE STYLES USING VARIABLES & BOOTSTRAP --- */
+        /* --- 2. BASE STYLES & FIXES USING VARIABLES --- */
         body {
             /* Apply theme variables */
             background-color: var(--bg-color);
             color: var(--text-color);
             transition: background-color 0.3s, color 0.3s;
         }
-        
-        /* Ensure main container is centered and uses fluid layout */
-        .container {
-            max-width: 900px; /* Max width for content */
+
+        /* FIX: Ensure generic text color applies to all major elements, overriding Bootstrap's specificity */
+        body, .card, .form-control, .form-control::placeholder {
+            color: var(--text-color) !important;
         }
 
         /* Custom Styling for the Blog Title */
@@ -53,12 +61,47 @@
             transition: background 0.2s;
             font-size: 1.5rem; 
             font-weight: 700;
-            color: var(--text-color) !important; /* Ensure it respects dark/light mode */
         }
         #blog-name:hover { background: var(--border-color); }
         #blog-name:focus { outline: 2px solid var(--primary-color); background: var(--card-bg); }
 
-        /* Custom Styling for Cards (Overriding default Bootstrap card look slightly) */
+        /* FIX: Button Styling - Use !important to ensure theme colors override Bootstrap */
+        .btn-primary { 
+            background-color: var(--primary-color) !important; 
+            border-color: var(--primary-color) !important;
+            color: var(--bg-color) !important; /* Text color contrasts with background */
+        }
+        body[data-theme="dark"] .btn-primary { 
+            color: var(--text-color) !important; /* Use light text on dark primary */
+        }
+
+        .btn-secondary { 
+            background-color: var(--secondary-color) !important; 
+            border-color: var(--secondary-color) !important;
+            color: var(--text-color) !important; 
+        }
+        .btn-success { 
+            background-color: var(--success-color) !important; 
+            border-color: var(--success-color) !important; 
+        }
+        .btn-danger { 
+            background-color: var(--danger-color) !important; 
+            border-color: var(--danger-color) !important; 
+        }
+        .btn-warning { 
+            background-color: var(--warning-color) !important; 
+            border-color: var(--warning-color) !important; 
+            color: var(--text-color) !important;
+        }
+        
+        /* Theme Toggle Button Styling */
+        #theme-toggle {
+            background: var(--card-bg) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-color) !important;
+        }
+        
+        /* Custom Styling for Cards */
         .post-card {
             background: var(--card-bg);
             box-shadow: var(--card-shadow);
@@ -71,34 +114,26 @@
             cursor: pointer;
         }
         .date { 
-            color: #888; 
+            color: #888 !important; /* Keep date text slightly muted */
             font-size: 0.85em; 
             display: block; 
             margin-bottom: 10px; 
         }
 
-        /* Form/Text Area Colors */
+        /* Form/Text Area Fixes */
         .form-control {
-            background-color: var(--card-bg);
-            color: var(--text-color);
-            border-color: var(--border-color);
-        }
-        /* Make sure input placeholder text is visible in dark mode */
-        body[data-theme="dark"] ::placeholder {
-            color: #adb5bd; /* Lighter placeholder text */
-            opacity: 1; 
+            background-color: var(--card-bg) !important;
+            border-color: var(--border-color) !important;
         }
 
         /* Reader View Content Area */
         #reader-content {
             background: var(--card-bg);
-            color: var(--text-color);
             box-shadow: var(--card-shadow);
         }
         
         /* Utility */
         .hidden { display: none !important; }
-
     </style>
 </head>
 <body data-theme="light">
@@ -209,6 +244,7 @@
 
             // --- Storage (Local Storage + Cookies - Unchanged) ---
             loadData: () => {
+                // 1. Try to load ALL app state from LocalStorage
                 const local = localStorage.getItem('myBlogAppState');
                 if (local) {
                     const savedState = JSON.parse(local);
@@ -217,6 +253,7 @@
                     return;
                 }
                 
+                // 2. Fallback to Cookies (for redundancy)
                 const cookie = app.getCookie('myBlogData');
                 if (cookie) {
                     app.state.posts = JSON.parse(cookie);
