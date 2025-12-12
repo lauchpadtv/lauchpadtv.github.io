@@ -3,335 +3,200 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="page-title">My Bootstrap Vanilla Blog</title>
-    
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title id="page-title">My Vanilla JS Blog - Markdown Enabled</title>
     
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> 
     
     <style>
-        /* --- 1. CUSTOM CSS VARIABLES FOR THEME --- */
-        :root {
-            /* Light Theme Defaults */
-            --bg-color: #f8f9fa; 
-            --text-color: #212529; 
-            --card-bg: white;
-            --card-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
-            --border-color: #dee2e6;
-            --primary-color: #0d6efd; 
-            --success-color: #198754;
-            --secondary-color: #6c757d;
-            --danger-color: #dc3545;
-            --warning-color: #ffc107;
-        }
-
-        /* Dark Theme Overrides */
-        body[data-theme="dark"] {
-            --bg-color: #212529; 
-            --text-color: #f8f9fa; 
-            --card-bg: #343a40; 
-            --card-shadow: 0 0.5rem 1rem rgba(0,0,0,0.3);
-            --border-color: #495057;
-            --primary-color: #0dcaf0; 
-            --success-color: #198754;
-            --secondary-color: #495057; 
-            --danger-color: #dc3545;
-            --warning-color: #ffc107;
-        }
-
-
-        /* --- 2. BASE STYLES & FIXES USING VARIABLES --- */
+        /* --- CSS STYLES --- */
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            transition: background-color 0.3s, color 0.3s;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f9;
+            color: #333;
         }
 
-        /* FIX: Ensure generic text color applies to all major elements, overriding Bootstrap's specificity */
-        body, .card, .form-control, .form-control::placeholder {
-            color: var(--text-color) !important;
+        /* Navigation */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+            margin-bottom: 20px;
         }
-
-        /* Custom Styling for the Blog Title */
+        
+        /* Style for Editable Blog Name */
         #blog-name { 
+            margin: 0; 
+            color: #444; 
             cursor: pointer; 
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.25rem;
+            padding: 5px 10px;
+            border-radius: 5px;
             transition: background 0.2s;
-            font-size: 1.5rem; 
-            font-weight: 700;
+            display: inline-block; 
+            font-size: 1.5em; /* Match h1 size */
+            font-weight: bold;
         }
-        #blog-name:hover { background: var(--border-color); }
-        #blog-name:focus { outline: 2px solid var(--primary-color); background: var(--card-bg); }
-
-        /* FIX: Button Styling - Use !important to ensure theme colors override Bootstrap */
-        .btn-primary { 
-            background-color: var(--primary-color) !important; 
-            border-color: var(--primary-color) !important;
-            color: var(--bg-color) !important; 
+        #blog-name:hover {
+            background: #e9e9f3;
         }
-        body[data-theme="dark"] .btn-primary { 
-            color: var(--text-color) !important; 
+        #blog-name:focus {
+            outline: 2px solid #007BFF;
+            background: white;
         }
 
-        .btn-secondary { 
-            background-color: var(--secondary-color) !important; 
-            border-color: var(--secondary-color) !important;
-            color: var(--text-color) !important; 
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background 0.3s;
         }
-        .btn-success { 
-            background-color: var(--success-color) !important; 
-            border-color: var(--success-color) !important; 
+        .btn-primary { background: #007BFF; color: white; }
+        .btn-primary:hover { background: #0056b3; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary:hover { background: #5a6268; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-warning { background: #ffc107; color: black; }
+        .btn-warning:hover { background: #e0a800; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-success:hover { background: #1e7e34; }
+
+
+        /* Blog List */
+        .card {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
         }
-        .btn-danger { 
-            background-color: var(--danger-color) !important; 
-            border-color: var(--danger-color) !important; 
-        }
-        .btn-warning { 
-            background-color: var(--warning-color) !important; 
-            border-color: var(--warning-color) !important; 
-            color: var(--text-color) !important;
-        }
-        
-        /* Theme Toggle Button Styling */
-        #theme-toggle {
-            background: var(--card-bg) !important;
-            border: 1px solid var(--border-color) !important;
-            color: var(--text-color) !important;
-        }
-        
-        /* Custom Styling for Cards */
-        .post-card {
-            background: var(--card-bg);
-            box-shadow: var(--card-shadow);
-            transition: transform 0.2s, background-color 0.3s, box-shadow 0.3s;
-        }
-        .post-card:hover { transform: translateY(-2px); }
-        
-        .post-card h3 {
-            color: var(--primary-color);
+        .card:hover { transform: translateY(-2px); }
+        .card h3 {
+            margin-top: 0;
+            color: #007BFF;
             cursor: pointer;
         }
-        .date { 
-            color: #888 !important; 
-            font-size: 0.85em; 
-            display: block; 
-            margin-bottom: 10px; 
-        }
+        .card h3:hover { text-decoration: underline; }
+        .date { color: #888; font-size: 0.85em; display: block; margin-bottom: 10px; }
 
-        /* Form/Text Area Fixes */
-        .form-control {
-            background-color: var(--card-bg) !important;
-            border-color: var(--border-color) !important;
+        /* Forms */
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box; 
+            font-family: inherit;
         }
+        textarea { height: 300px; resize: vertical; }
 
-        /* Reader View Content Area */
+        /* Reader View - Markdown Styling */
         #reader-content {
-            background: var(--card-bg);
-            box-shadow: var(--card-shadow);
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            line-height: 1.6;
+            margin-top: 20px;
         }
+        #reader-content h1, #reader-content h2, #reader-content h3 { margin-top: 25px; margin-bottom: 10px; }
+        #reader-content ul, #reader-content ol { padding-left: 25px; }
+        #reader-content pre { background: #eee; padding: 10px; border-radius: 5px; overflow-x: auto; }
 
-        /* Toolbar Styling */
-        #markdown-toolbar {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-bottom: none; 
-            border-top-left-radius: 0.3rem;
-            border-top-right-radius: 0.3rem;
-            padding: 0.5rem;
-            display: flex;
-            gap: 0.25rem;
-            flex-wrap: wrap;
-        }
-        #markdown-toolbar .btn {
-            font-size: 0.9rem;
-            padding: 0.3rem 0.5rem;
-            color: var(--text-color) !important;
-            background-color: var(--bg-color) !important;
-            border-color: var(--border-color) !important;
-        }
-        #markdown-toolbar .btn:hover {
-            background-color: var(--border-color) !important;
-        }
-        
         /* Utility */
         .hidden { display: none !important; }
-
-        /* Mobile specific adjustments */
-        @media (max-width: 576px) {
-            /* Fix button stack on small screens for export/import */
-            #home-view .d-flex {
-                flex-direction: column;
-                align-items: stretch !important;
-            }
-            #home-view .d-flex > * {
-                margin-bottom: 0.5rem;
-            }
-            /* Remove margins on export/import buttons when stacked */
-            #home-view .me-2 { 
-                margin-right: 0 !important;
-            }
-        }
+        .toolbar { margin-bottom: 15px; }
     </style>
 </head>
-<body data-theme="light">
+<body>
 
-    <div class="container my-4">
+    <nav>
+        <h1 id="blog-name" contenteditable="true" onblur="app.setBlogName()">✍️ My Blog System</h1>
+        <button id="nav-create-btn" class="btn btn-primary" onclick="app.navigate('editor')">+ New Post</button>
+    </nav>
 
-        <nav class="navbar navbar-expand-lg border-bottom pb-3 mb-4">
-            <div class="container-fluid p-0">
-                <h1 id="blog-name" contenteditable="true" onblur="app.setBlogName()">✍️ My Single-File Blog</h1>
-                
-                <div class="d-flex align-items-center">
-                    <button id="theme-toggle" class="btn btn-outline-secondary me-2" onclick="app.toggleTheme()" title="Toggle Light/Dark Mode">🌓</button>
-                    <button id="nav-create-btn" class="btn btn-primary" onclick="app.navigate('editor')">
-                        <i class="bi bi-plus-lg"></i> + New Post
-                    </button>
-                </div>
+    <section id="home-view">
+        <div style="margin-bottom: 20px;">
+            <button class="btn btn-success" onclick="app.importData()">📥 Import Data</button>
+            <button class="btn btn-secondary" onclick="app.exportData()">📤 Export Data</button>
+        </div>
+        <div id="blog-list">
             </div>
-        </nav>
+    </section>
 
-        <main>
-            <section id="home-view">
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
-                    <p class="text-muted mb-2 mb-md-0 me-md-3">⚠️ Data stored in this browser (Local Storage).</p>
-                    <div class="d-flex">
-                        <button class="btn btn-success me-2" onclick="app.importData()">
-                            <i class="bi bi-box-arrow-in-down"></i> 📥 Import
-                        </button>
-                        <button class="btn btn-secondary" onclick="app.exportData()">
-                            <i class="bi bi-box-arrow-up"></i> 📤 Export
-                        </button>
-                    </div>
-                </div>
-                
-                <div id="blog-list">
-                    </div>
-            </section>
+    <section id="editor-view" class="hidden">
+        <h2 id="editor-heading">Write New Post</h2>
+        <p style="color: #6c757d; font-size: 0.9em;">**You can use Markdown for formatting (e.g., `# Heading`, `**bold**`, `- list item`)**</p>
+        <input type="hidden" id="post-id">
+        <input type="text" id="post-title" placeholder="Enter a catchy title...">
+        <textarea id="post-content" placeholder="Write your story here..."></textarea>
+        
+        <div class="toolbar">
+            <button class="btn btn-primary" onclick="app.savePost()">Save Post</button>
+            <button class="btn btn-secondary" onclick="app.cancelEdit()">Cancel</button>
+        </div>
+    </section>
 
-            <section id="editor-view" class="hidden">
-                <h2 id="editor-heading" class="mb-3">Write New Post</h2>
-                <p class="text-muted mb-3">**Markdown formatting is enabled.**</p>
-                
-                <input type="hidden" id="post-id">
-                <input type="text" id="post-title" class="form-control form-control-lg mb-3" placeholder="Enter a catchy title...">
-                
-                <div id="markdown-toolbar">
-                    <button class="btn" onclick="app.formatText('**','**')" title="Bold (Ctrl+B)">**B**</button>
-                    <button class="btn" onclick="app.formatText('*','*')" title="Italic (Ctrl+I)">*I*</button>
-                    <button class="btn" onclick="app.formatText('# ','')" title="Heading 1">H1</button>
-                    <button class="btn" onclick="app.formatText('## ','')" title="Heading 2">H2</button>
-                    <button class="btn" onclick="app.formatText('- ','\n')" title="Bullet List">• List</button>
-                    <button class="btn" onclick="app.formatText('1. ','\n')" title="Numbered List">1. List</button>
-                    <button class="btn" onclick="app.formatText('[Link Text](','http://example.com)')" title="Link">🔗 Link</button>
-                    <button class="btn" onclick="app.formatText('`','`')" title="Inline Code">`< >`</button>
-                    <button class="btn" onclick="app.formatText('```javascript\n','\n```')" title="Code Block">{' '}</button>
-                </div>
+    <section id="reader-view" class="hidden">
+        <div class="toolbar">
+            <button class="btn btn-secondary" onclick="app.navigate('home')">← Back to Home</button>
+            <div style="float: right;">
+                <button class="btn btn-warning" onclick="app.editCurrentPost()">Edit</button>
+                <button class="btn btn-danger" onclick="app.deleteCurrentPost()">Delete</button>
+            </div>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #ddd;">
+        
+        <h1 id="reader-title" style="font-size: 2.5em; margin-bottom: 5px;"></h1>
+        <small id="reader-date" class="date"></small>
+        <div id="reader-content"></div>
+    </section>
 
-                <textarea id="post-content" class="form-control mb-3" rows="15" placeholder="Write your story here..." style="border-top-left-radius: 0; border-top-right-radius: 0; margin-top: 0;"></textarea>
-                
-                <div class="toolbar d-flex justify-content-start">
-                    <button class="btn btn-primary me-2" onclick="app.savePost()">Save Post</button>
-                    <button class="btn btn-secondary" onclick="app.cancelEdit()">Cancel</button>
-                </div>
-            </section>
-
-            <section id="reader-view" class="hidden">
-                <div class="toolbar d-flex justify-content-between mb-4">
-                    <button class="btn btn-secondary" onclick="app.navigate('home')">
-                        <i class="bi bi-arrow-left"></i> ← Back to Home
-                    </button>
-                    <div>
-                        <button class="btn btn-warning me-2" onclick="app.editCurrentPost()">Edit</button>
-                        <button class="btn btn-danger" onclick="app.deleteCurrentPost()">Delete</button>
-                    </div>
-                </div>
-                
-                <div id="reader-content" class="p-4 rounded">
-                    <h1 id="reader-title" class="mb-1" style="font-size: 2.2rem;"></h1>
-                    <small id="reader-date" class="date text-muted d-block mb-3"></small>
-                    </div>
-            </section>
-        </main>
-
-    </div> <script>
+    <script>
         const app = {
-            // State: Holds data in memory
+            // State: Now includes a field for the blog name
             state: {
                 posts: [],
                 activePostId: null,
-                blogName: 'My Bootstrap Vanilla Blog',
-                currentTheme: 'light' // Default theme
+                blogName: 'My Vanilla JS Blog' // Default name
             },
             
             // --- Initialization ---
             init: () => {
                 app.loadData();
-                app.loadTheme(); 
                 app.renderBlogName(); 
                 app.renderList();
             },
 
-            // --- Theme Functions ---
-            loadTheme: () => {
-                const savedTheme = localStorage.getItem('themePreference') || 
-                                    (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-                app.setTheme(savedTheme);
-            },
-            
-            toggleTheme: () => {
-                const newTheme = app.state.currentTheme === 'light' ? 'dark' : 'light';
-                app.setTheme(newTheme);
-                localStorage.setItem('themePreference', newTheme);
-            },
-
-            setTheme: (theme) => {
-                document.body.setAttribute('data-theme', theme);
-                app.state.currentTheme = theme;
-                const toggleBtn = document.getElementById('theme-toggle');
-                toggleBtn.innerText = theme === 'light' ? '🌙' : '☀️';
-                toggleBtn.title = theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode';
-            },
-
-            // --- Text Formatting Function ---
-            formatText: (prefix, suffix) => {
-                const textarea = document.getElementById('post-content');
-                const start = textarea.selectionStart;
-                const end = textarea.selectionEnd;
-                const selectedText = textarea.value.substring(start, end);
-                
-                let newText;
-
-                if (start !== end) {
-                    newText = prefix + selectedText + suffix;
-                } else {
-                    newText = prefix + suffix;
-                }
-
-                textarea.value = textarea.value.substring(0, start) + newText + textarea.value.substring(end);
-                
-                if (start === end) {
-                    textarea.focus();
-                    textarea.selectionEnd = start + prefix.length;
-                }
-            },
-
-            // --- Storage (Local Storage + Cookies - Unchanged) ---
+            // --- Storage (Local Storage + Cookies) ---
             loadData: () => {
+                // Try to load ALL app data (posts and blogName) from LocalStorage
                 const local = localStorage.getItem('myBlogAppState');
                 if (local) {
                     const savedState = JSON.parse(local);
+                    
                     app.state.posts = savedState.posts || [];
-                    app.state.blogName = savedState.blogName || 'My Single-File Vanilla Blog';
+                    app.state.blogName = savedState.blogName || 'My Vanilla JS Blog';
                     return;
                 }
                 
+                // Fallback (for old structure or first time)
                 const cookie = app.getCookie('myBlogData');
                 if (cookie) {
                     app.state.posts = JSON.parse(cookie);
                 }
             },
 
+            // Updated save to store the entire state object (posts + blogName)
             saveData: () => {
                 const stateToSave = {
                     posts: app.state.posts,
@@ -341,6 +206,7 @@
                 const dataStr = JSON.stringify(stateToSave);
                 localStorage.setItem('myBlogAppState', dataStr); 
 
+                // For cookie redundancy, only store posts (due to size limit)
                 const postStr = JSON.stringify(app.state.posts);
                 document.cookie = `myBlogData=${postStr}; path=/; max-age=31536000; SameSite=Lax`;
             },
@@ -351,29 +217,10 @@
                 return null;
             },
 
-            // --- Blog Name Functions ---
-            renderBlogName: () => {
-                const blogNameElement = document.getElementById('blog-name');
-                const pageTitleElement = document.getElementById('page-title');
-                
-                blogNameElement.innerText = app.state.blogName;
-                pageTitleElement.innerText = app.state.blogName + ' | Single File App';
-            },
+            // --- NEW: Export/Import Functionality ---
 
-            setBlogName: () => {
-                const newName = document.getElementById('blog-name').innerText.trim();
-                
-                if (newName && newName !== app.state.blogName) {
-                    app.state.blogName = newName;
-                    app.saveData(); 
-                    app.renderBlogName(); 
-                } else if (!newName) {
-                    app.renderBlogName(); 
-                }
-            },
-            
-            // --- Export/Import Functionality (Unchanged) ---
             exportData: () => {
+                // Prepare data (posts and blog name)
                 const stateToSave = {
                     posts: app.state.posts,
                     blogName: app.state.blogName,
@@ -381,24 +228,29 @@
                 };
                 const dataStr = JSON.stringify(stateToSave, null, 2); 
 
+                // Create a temporary download link
                 const blob = new Blob([dataStr], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
 
+                // Trigger the download
                 link.href = url;
                 link.download = `blog_backup_${new Date().toISOString().slice(0, 10)}.json`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
                 URL.revokeObjectURL(url);
+
                 alert("Blog data exported successfully! Check your downloads folder.");
             },
 
             importData: () => {
+                // Create a hidden file input element
                 const input = document.createElement('input');
                 input.type = 'file';
                 input.accept = 'application/json';
 
+                // Define what happens when a file is selected
                 input.onchange = (event) => {
                     const file = event.target.files[0];
                     if (!file) return;
@@ -412,12 +264,13 @@
                                 throw new Error('Invalid file structure. Missing "posts" array.');
                             }
 
+                            // If imported successfully, update state and save
                             app.state.posts = importedState.posts;
-                            app.state.blogName = importedState.blogName || 'Imported Single File Blog';
+                            app.state.blogName = importedState.blogName || 'Imported Blog';
                             
-                            app.saveData(); 
-                            app.renderBlogName(); 
-                            app.navigate('home'); 
+                            app.saveData(); // Save to LocalStorage/Cookie
+                            app.renderBlogName(); // Update UI
+                            app.navigate('home'); // Show home view with new data
                             alert(`Blog data imported successfully! ${app.state.posts.length} posts loaded.`);
                             
                         } catch (error) {
@@ -427,10 +280,34 @@
                     };
                     reader.readAsText(file);
                 };
+
+                // Open the file selection dialog
                 input.click();
             },
 
-            // --- Navigation, Actions, and Helpers ---
+            // --- Blog Name Functions ---
+            renderBlogName: () => {
+                const blogNameElement = document.getElementById('blog-name');
+                const pageTitleElement = document.getElementById('page-title');
+                
+                blogNameElement.innerText = app.state.blogName;
+                pageTitleElement.innerText = app.state.blogName + ' | Vanilla JS Blog';
+            },
+
+            setBlogName: () => {
+                const newName = document.getElementById('blog-name').innerText.trim();
+                
+                if (newName && newName !== app.state.blogName) {
+                    app.state.blogName = newName;
+                    app.saveData(); 
+                    app.renderBlogName(); 
+                } else if (!newName) {
+                    app.renderBlogName(); 
+                }
+            },
+            // --- End Blog Name Functions ---
+
+            // --- Navigation ---
             navigate: (viewId) => {
                 document.getElementById('home-view').classList.add('hidden');
                 document.getElementById('editor-view').classList.add('hidden');
@@ -439,17 +316,22 @@
                 document.getElementById(viewId + '-view').classList.remove('hidden');
 
                 const navBtn = document.getElementById('nav-create-btn');
-                navBtn.style.display = (viewId === 'home') ? 'block' : 'none';
-                if(viewId === 'home') app.renderList();
+                if(viewId === 'home') {
+                    app.renderList();
+                    navBtn.style.display = 'block';
+                } else {
+                    navBtn.style.display = 'none';
+                }
             },
 
+            // --- Actions ---
             savePost: () => {
                 const idInput = document.getElementById('post-id').value;
                 const title = document.getElementById('post-title').value;
                 const content = document.getElementById('post-content').value;
 
                 if (!title.trim() || !content.trim()) {
-                    alert("Please fill in both fields");
+                    alert("Please write both a title and some content!");
                     return;
                 }
 
@@ -462,7 +344,12 @@
                         app.state.posts[index].content = content;
                     }
                 } else {
-                    const newPost = { id: Date.now(), title, content, date: timestamp };
+                    const newPost = {
+                        id: Date.now(),
+                        title: title,
+                        content: content,
+                        date: timestamp
+                    };
                     app.state.posts.unshift(newPost);
                 }
 
@@ -471,15 +358,20 @@
                 app.navigate('home');
             },
 
-            cancelEdit: () => { app.clearEditor(); app.navigate('home'); },
+            cancelEdit: () => {
+                app.clearEditor();
+                app.navigate('home');
+            },
 
             editCurrentPost: () => {
                 const post = app.state.posts.find(p => p.id === app.state.activePostId);
                 if (!post) return;
+
                 document.getElementById('post-id').value = post.id;
                 document.getElementById('post-title').value = post.title;
                 document.getElementById('post-content').value = post.content;
                 document.getElementById('editor-heading').innerText = "Edit Post";
+                
                 app.navigate('editor');
             },
 
@@ -492,23 +384,22 @@
             },
 
             viewPost: (id) => {
-                // FIX: Look up the post using the passed 'id' parameter, not app.state.activePostId
-                const post = app.state.posts.find(p => p.id === id); 
-                
+                const post = app.state.posts.find(p => p.id === id);
                 if (!post) return;
-                
-                // Set activePostId AFTER post is found
-                app.state.activePostId = id;
 
-                // Ensure elements exist and set properties
+                app.state.activePostId = id;
                 document.getElementById('reader-title').innerText = post.title;
-                document.getElementById('reader-date').innerText = post.date; // This line was failing
-                const htmlContent = marked.parse(post.content); 
-                document.getElementById('reader-content').innerHTML = htmlContent;
+                document.getElementById('reader-date').innerText = post.date;
                 
+                // Convert Markdown to HTML
+                const htmlContent = marked.parse(post.content); 
+                
+                document.getElementById('reader-content').innerHTML = htmlContent;
+
                 app.navigate('reader');
             },
 
+            // --- Helpers ---
             clearEditor: () => {
                 document.getElementById('post-id').value = '';
                 document.getElementById('post-title').value = '';
@@ -521,26 +412,23 @@
                 listContainer.innerHTML = '';
 
                 if (app.state.posts.length === 0) {
-                    listContainer.innerHTML = `<div class="text-center py-5 text-muted">
+                    listContainer.innerHTML = `<div style="text-align:center; color:#777; margin-top:50px;">
                         <h2>No posts yet 😢</h2>
-                        <p>Click '+ New Post' to start writing.</p>
+                        <p>Click the "+ New Post" button to start writing, or **Import Data** if you have a backup file.</p>
                     </div>`;
                     return;
                 }
 
                 app.state.posts.forEach(post => {
                     const card = document.createElement('div');
-                    card.className = 'card post-card mb-3';
+                    card.className = 'card';
                     
                     const snippet = post.content.length > 150 ? post.content.substring(0, 150).replace(/\n/g, ' ') + '...' : post.content.replace(/\n/g, ' ');
                     
                     card.innerHTML = `
-                        <div class="card-body">
-                            <h3 class="card-title" onclick="app.viewPost(${post.id})">${post.title}</h3>
-                            <span class="date">${post.date}</span>
-                            <p class="card-text">${snippet}</p>
-                            <a href="#" onclick="app.viewPost(${post.id}); return false;" class="btn btn-sm btn-outline-primary">Read More</a>
-                        </div>
+                        <h3 onclick="app.viewPost(${post.id})">${post.title}</h3>
+                        <span class="date">${post.date}</span>
+                        <p>${snippet}</p>
                     `;
                     listContainer.appendChild(card);
                 });
@@ -550,6 +438,5 @@
         // Start the application
         app.init();
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
