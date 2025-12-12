@@ -18,7 +18,7 @@
             color: #333;
         }
 
-        /* NEW: Grid Layout for Main Content and Sidebar */
+        /* Grid Layout for Main Content and Sidebar */
         .content-wrapper {
             display: grid;
             grid-template-columns: 2fr 1fr; /* 2/3 main, 1/3 sidebar */
@@ -39,25 +39,15 @@
             padding-bottom: 10px;
             margin-top: 0;
         }
-        .news-item {
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px dashed #eee;
+        /* Quote specific styles */
+        blockquote {
+            font-style: italic; 
+            font-size: 1.1em; 
+            margin: 0 0 10px 0;
+            border-left: 3px solid #E91E63;
+            padding-left: 10px;
         }
-        .news-item a {
-            font-weight: bold;
-            color: #007BFF;
-            text-decoration: none;
-            display: block;
-        }
-        .news-item a:hover { text-decoration: underline; }
-        .news-item p {
-            font-size: 0.9em;
-            color: #555;
-            margin-top: 5px;
-        }
-
-        /* Navigation & Existing Styles */
+        /* Navigation & existing styles */
         nav {
             display: flex;
             justify-content: space-between;
@@ -132,7 +122,10 @@
         <main>
             <section id="home-view">
                 <div style="margin-bottom: 20px;">
-                    <p style="color: #6c757d; font-weight: bold; font-size: 0.9em;">⚠️ Data stored in this browser (Local Storage).</p>
+                    <p style="color: #6c757d; font-weight: bold; font-size: 0.9em;">
+                        ⚠️ Data stored in this browser (Local Storage). <br>
+                        ✨ **Quote feature requires Node.js proxy running on port 3001.**
+                    </p>
                     <button class="btn btn-success" onclick="app.importData()">📥 Import From File</button>
                     <button class="btn btn-secondary" onclick="app.exportData()">📤 Export To File</button>
                 </div>
@@ -170,15 +163,14 @@
         </main>
         
         <aside id="sidebar-news">
-            <h3>🌎 Top Headlines</h3>
+            <h3>💡 Daily Coding Wisdom</h3>
             <div id="news-content">
-                <p>Loading recent news headlines...</p>
+                <p>Loading quote...</p>
             </div>
         </aside>
 
     </div> <script>
-        const API_KEY = "a139ce3350864b92ae986834c93f5119"; // WARNING: This key is exposed in client-side code!
-        const API_ENDPOINT = `https://newsapi.org/v2/everything?country=zim&apiKey=${API_KEY}`;
+        const API_ENDPOINT = 'http://localhost:3001/api/quote'; // Proxy URL
 
         const app = {
             state: {
@@ -192,42 +184,42 @@
                 app.loadData();
                 app.renderBlogName(); 
                 app.renderList();
-                app.loadNewsSidebar(); 
+                app.loadQuoteSidebar(); // Load the quote
             },
             
-            // --- News Sidebar Function (Now uses the actual NewsAPI endpoint) ---
-            loadNewsSidebar: async () => {
+            // --- Quote Sidebar Function ---
+            loadQuoteSidebar: async () => {
                 const newsContainer = document.getElementById('news-content');
-                newsContainer.innerHTML = '<p>Fetching latest tech news from NewsAPI...</p>'; 
+                newsContainer.innerHTML = '<p>Fetching random quote...</p>'; 
 
                 try {
-                    // This call will fail if the browser blocks cross-origin requests 
-                    // (especially if the file is opened locally with file:// protocol).
                     const response = await fetch(API_ENDPOINT);
 
                     if (response.ok) {
-                        const data = await response.json();
+                        const quoteData = await response.json();
                         
-                        if (data.status === 'ok' && data.articles.length > 0) {
-                            // Slice to get the top 5 articles
-                            newsContainer.innerHTML = data.articles.slice(0, 5).map(item => `
-                                <div class="news-item">
-                                    <a href="${item.url}" target="_blank">${item.title}</a>
-                                    <p>${item.description ? item.description.substring(0, 100) + '...' : 'No description available.'}</p>
+                        // Expected JSON structure: { "en": "quote text", "author": "name" }
+                        const quoteText = quoteData.en;
+                        const author = quoteData.author || "Unknown";
+                        
+                        if (quoteText) {
+                            newsContainer.innerHTML = `
+                                <div style="text-align: center; padding: 10px;">
+                                    <blockquote>
+                                        "${quoteText}"
+                                    </blockquote>
+                                    <p style="font-weight: bold; color: #E91E63; margin: 0;">— ${author}</p>
                                 </div>
-                            `).join('');
+                            `;
                         } else {
-                             // Fallback for API response error or no articles
-                            newsContainer.innerHTML = `<p style="color:red;">Error: ${data.message || 'No news articles found.'}</p><p>Check if your API key is valid or if your browser is blocking the request (CORS).</p>`;
+                            newsContainer.innerHTML = `<p style="color:red;">Error: Could not retrieve quote text.</p>`;
                         }
                     } else {
-                        // Fallback for network error
-                        newsContainer.innerHTML = `<p style="color:red;">Failed to fetch news (HTTP Status: ${response.status}).</p><p>You might need to use a proxy server for this to work in a local file.</p>`;
+                        newsContainer.innerHTML = `<p style="color:red;">Failed to fetch quote (Proxy Status: ${response.status}).</p><p>Ensure your proxy server is running on port 3001.</p>`;
                     }
                 } catch (e) {
-                    // Fallback for general error (e.g., no internet, CORS blocked)
-                    newsContainer.innerHTML = `<p style="color:red;">Could not connect to the news API.</p><p>Error: ${e.message}. For security reasons, browsers often block API calls when you open the file directly from your computer (file://).</p>`;
-                    console.error("News Fetch Error:", e);
+                    newsContainer.innerHTML = `<p style="color:red;">Could not connect to the proxy server.</p><p>Error: ${e.message}. Ensure Node.js proxy is running.</p>`;
+                    console.error("Quote Fetch Error:", e);
                 }
             },
             
